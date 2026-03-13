@@ -2000,6 +2000,7 @@ dependencies = [
  "advisory-lock",
  "async-std",
  "async-trait",
+ "base64 0.22.1",
  "chrono",
  "chumsky",
  "concat-with",
@@ -2033,6 +2034,7 @@ dependencies = [
  "secret-lib",
  "serde",
  "serde-xml-rs",
+ "serde_json",
  "shellexpand-utils",
  "thiserror 2.0.18",
  "tokio",
@@ -6700,6 +6702,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "socks"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0c3dbbd9ae980613c6dd8e28a9407b50509d3803b57624d5dfe8315218cd58b"
+dependencies = [
+ "byteorder",
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7595,6 +7608,7 @@ dependencies = [
  "rustls 0.23.36",
  "rustls-pki-types",
  "rustls-platform-verifier",
+ "socks",
  "ureq-proto",
  "utf-8",
  "webpki-root-certs",
