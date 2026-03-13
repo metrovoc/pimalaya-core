@@ -328,9 +328,7 @@ impl GmailContext {
             .raw
             .ok_or_else(|| Error::MessageNotFoundError(id.to_owned()))?;
 
-        URL_SAFE_NO_PAD
-            .decode(raw)
-            .map_err(Error::Base64DecodeError)
+        decode_raw_message(&raw)
     }
 
     pub(crate) async fn list_all_message_ids(
@@ -1241,6 +1239,40 @@ fn split_once_empty_line(input: &str) -> Option<(&str, &str)> {
     input
         .split_once("\r\n\r\n")
         .or_else(|| input.split_once("\n\n"))
+}
+
+fn decode_raw_message(raw: &str) -> Result<Vec<u8>> {
+    let normalized: String = raw.chars().filter(|c| !c.is_ascii_whitespace()).collect();
+    let normalized = normalized.trim_end_matches('=');
+
+    URL_SAFE_NO_PAD
+        .decode(normalized)
+        .map_err(Error::Base64DecodeError)
+}
+
+#[cfg(test)]
+mod tests {
+    use base64::{engine::general_purpose::URL_SAFE, Engine as _};
+
+    use super::decode_raw_message;
+
+    #[test]
+    fn decodes_padded_gmail_raw_messages() {
+        let encoded = URL_SAFE.encode(b"Subject: test\r\n\r\nhello\n");
+
+        let decoded = decode_raw_message(&encoded).unwrap();
+
+        assert_eq!(decoded, b"Subject: test\r\n\r\nhello\n");
+    }
+
+    #[test]
+    fn decodes_wrapped_gmail_raw_messages() {
+        let encoded = format!("SGVsbG8=\n");
+
+        let decoded = decode_raw_message(&encoded).unwrap();
+
+        assert_eq!(decoded, b"Hello");
+    }
 }
 
 #[cfg(feature = "tokio")]
