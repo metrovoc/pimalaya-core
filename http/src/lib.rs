@@ -8,7 +8,7 @@ use ureq::{
     config::Config,
     http::Response,
     tls::{RootCerts, TlsConfig, TlsProvider},
-    Agent, Body,
+    Agent, Body, Proxy, ProxyProtocol,
 };
 
 #[doc(inline)]
@@ -48,10 +48,71 @@ impl Client {
                 TlsProvider::Rustls,
             );
 
-        let config = Config::builder().tls_config(tls.build()).build();
+        let proxy = Self::detect_proxy();
+
+        let config = Config::builder()
+            .tls_config(tls.build())
+            .proxy(proxy)
+            .build();
         let agent = config.new_agent();
 
         Self { agent }
+    }
+
+    /// Detect proxy from environment, filtering out SOCKS proxies
+    /// when the `socks-proxy` feature is not enabled in ureq.
+    fn detect_proxy() -> Option<Proxy> {
+        let proxy = Proxy::try_from_env()?;
+
+        #[cfg(feature = "socks-proxy")]
+        {
+            return Some(proxy);
+        }
+
+        #[cfg(not(feature = "socks-proxy"))]
+        match proxy.protocol() {
+            ProxyProtocol::Socks4
+            | ProxyProtocol::Socks4A
+            | ProxyProtocol::Socks5
+            | ProxyProtocol::Socks5h => {
+                tracing::warn!(
+                    "detected SOCKS proxy from environment but socks-proxy \
+                     feature is not enabled, falling back to HTTP proxy"
+                );
+                Self::try_http_proxy_from_env()
+            }
+            ProxyProtocol::Http | ProxyProtocol::Https => Some(proxy),
+            _ => Some(proxy),
+        }
+    }
+
+    /// Try HTTPS_PROXY / HTTP_PROXY env vars only (skip ALL_PROXY).
+    #[cfg(not(feature = "socks-proxy"))]
+    fn try_http_proxy_from_env() -> Option<Proxy> {
+        const HTTP_PROXY_VARS: &[&str] = &[
+            "HTTPS_PROXY",
+            "https_proxy",
+            "HTTP_PROXY",
+            "http_proxy",
+        ];
+
+        for var in HTTP_PROXY_VARS {
+            if let Ok(val) = std::env::var(var) {
+                if let Ok(proxy) = Proxy::new(&val) {
+                    if !matches!(
+                        proxy.protocol(),
+                        ProxyProtocol::Socks4
+                            | ProxyProtocol::Socks4A
+                            | ProxyProtocol::Socks5
+                            | ProxyProtocol::Socks5h
+                    ) {
+                        return Some(proxy);
+                    }
+                }
+            }
+        }
+
+        None
     }
 
     /// Sends a request.

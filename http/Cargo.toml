@@ -37,6 +37,10 @@ async-std = ["dep:async-std"]
 rustls = ["ureq/rustls"]
 native-tls = ["ureq/native-tls"]
 
+# SOCKS proxy support
+#
+socks-proxy = ["ureq/socks-proxy"]
+
 # Vendored (mostly for OpenSSL)
 #
 # TODO: waiting for <https://github.com/algesten/ureq/pull/866>
