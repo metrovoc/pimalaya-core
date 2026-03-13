@@ -12,7 +12,7 @@ documentation = "https://docs.rs/email-lib/latest/email/"
 repository = "https://github.com/pimalaya/core/tree/master/email/"
 
 [package.metadata.docs.rs]
-features = ["tokio-rustls", "imap", "maildir", "sendmail", "smtp", "autoconfig", "derive", "keyring", "notify", "oauth2", "sync", "thread", "watch", "pgp-commands", "pgp-native"]
+features = ["tokio-rustls", "gmail", "imap", "maildir", "sendmail", "smtp", "autoconfig", "derive", "keyring", "notify", "oauth2", "sync", "thread", "watch", "pgp-commands", "pgp-native"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [lib]
@@ -22,6 +22,7 @@ name = "email"
 default = ["tokio-rustls"]
 full = [
   "tokio-rustls",
+  "gmail",
   "imap",
   "maildir",
   "notmuch",
@@ -38,6 +39,15 @@ full = [
   "pgp-commands",
   "pgp-gpg",
   "pgp-native",
+]
+
+gmail = [
+  "dep:base64",
+  "dep:http-lib",
+  "dep:serde",
+  "dep:serde_json",
+  "keyring",
+  "oauth2",
 ]
 
 imap = [
@@ -178,6 +188,7 @@ rayon = "1.6"
 regex = "1.5"
 secret-lib = { version = "1", default-features = false, features = ["command"], path = "../secret" }
 serde = { version = "1", optional = true, features = ["derive"] }
+serde_json = { version = "1", optional = true }
 serde-xml-rs = { version = "0.6", optional = true }
 shellexpand-utils = "=0.2.1"
 thiserror = "2"
@@ -189,3 +200,4 @@ tree_magic_mini = "3"
 urlencoding = "2.1"
 utf7-imap = { version = "=0.3.2", optional = true }
 uuid = { version = "1", features = ["v4"] }
+base64 = { version = "0.22", optional = true }

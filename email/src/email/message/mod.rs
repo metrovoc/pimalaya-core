@@ -330,8 +330,8 @@ enum RawMessages {
     Imap(Vec<Vec1<MessageDataItem<'static>>>),
     #[cfg(feature = "maildir")]
     MailEntries(Vec<MaildirEntry>),
-    #[cfg(feature = "notmuch")]
-    Notmuch(Vec<Vec<u8>>),
+    #[cfg(any(feature = "gmail", feature = "notmuch"))]
+    Bytes(Vec<Vec<u8>>),
     #[allow(dead_code)]
     None,
 }
@@ -361,8 +361,8 @@ impl Messages {
                 .collect(),
             #[cfg(feature = "maildir")]
             RawMessages::MailEntries(entries) => entries.iter_mut().map(Message::from).collect(),
-            #[cfg(feature = "notmuch")]
-            RawMessages::Notmuch(raw) => raw
+            #[cfg(any(feature = "gmail", feature = "notmuch"))]
+            RawMessages::Bytes(raw) => raw
                 .iter()
                 .map(|raw| Message::from(raw.as_slice()))
                 .collect(),
@@ -407,11 +407,11 @@ impl TryFrom<Vec<MaildirEntry>> for Messages {
     }
 }
 
-#[cfg(feature = "notmuch")]
+#[cfg(any(feature = "gmail", feature = "notmuch"))]
 impl From<Vec<Vec<u8>>> for Messages {
     fn from(raw: Vec<Vec<u8>>) -> Self {
         MessagesBuilder {
-            raw: RawMessages::Notmuch(raw),
+            raw: RawMessages::Bytes(raw),
             emails_builder: Messages::emails_builder,
         }
         .build()

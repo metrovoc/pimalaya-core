@@ -12,7 +12,7 @@
 //! build a custom backend.
 //!
 //! The library also exposes pre-configured backend features for
-//! Maildir, IMAP, Notmuch, SMTP and Sendmail.
+//! Maildir, Gmail, IMAP, Notmuch, SMTP and Sendmail.
 //!
 //! See examples in the `/tests` folder.
 //!
@@ -56,6 +56,8 @@ pub mod config;
 pub mod email;
 mod error;
 pub mod folder;
+#[cfg(feature = "gmail")]
+pub mod gmail;
 #[cfg(feature = "imap")]
 pub mod imap;
 #[cfg(feature = "maildir")]
